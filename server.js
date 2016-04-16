@@ -45,6 +45,19 @@ app.post('/todos', function(req, res) {
     res.json(body);
 });
 
+// DELETE /todos/:id
+app.delete('/todos/:id', function(req, res) {
+    var todoId = parseInt(req.params.id, 10);
+    var todo = _.findWhere(todos, {id: todoId});
+
+    if (todo) {
+        todos = _.without(todos, todo);
+        res.json(todo);
+    } else {
+        res.status(404).send('Cannot delete ToDo with requested Id');
+    }
+});
+
 app.listen(PORT, function() {
     console.log('Express Listening on PORT: ' + PORT);
 });
