@@ -70,7 +70,7 @@ app.post('/users', function (req, res) {
     var body = _.pick(req.body, 'email', 'password');
 
     db.user.create(body).then(function(data) {
-        res.json(data);
+        res.json(data.toPublicJSON());
     }, function(err) {
         res.status(400).json(err);
     });
