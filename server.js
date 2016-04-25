@@ -135,7 +135,7 @@ app.put('/todos/:id', function(req, res) {
     });
 });
 
-db.sequelize.sync({force: trueg}).then(function() {
+db.sequelize.sync({force: true}).then(function() {
     app.listen(PORT, function() {
         console.log('Express Listening on PORT: ' + PORT);
     });
