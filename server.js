@@ -2,6 +2,7 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var _ = require('underscore');
 var db = require('./db.js');
+var bcrypt = require('bcrypt');
 
 var app = express();
 var todos = [];
@@ -76,6 +77,17 @@ app.post('/users', function (req, res) {
     });
 });
 
+// POST /users/login
+app.post('/users/login', function(req, res) {
+    var body = _.pick(req.body, 'email', 'password');
+
+    db.user.authenticate(body).then(function(data) {
+        res.json(data.toPublicJSON());
+    }, function(err) {
+        res.status(401).send(err);
+    });
+});
+
 // DELETE /todos/:id
 app.delete('/todos/:id', function(req, res) {
     var todoId = parseInt(req.params.id, 10);
@@ -123,7 +135,7 @@ app.put('/todos/:id', function(req, res) {
     });
 });
 
-db.sequelize.sync().then(function() {
+db.sequelize.sync({force: trueg}).then(function() {
     app.listen(PORT, function() {
         console.log('Express Listening on PORT: ' + PORT);
     });
