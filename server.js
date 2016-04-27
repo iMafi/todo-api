@@ -79,33 +79,6 @@ app.post('/todos', middleware.requireAuthentication, function(req, res) {
     });
 });
 
-// POST /users
-app.post('/users', function (req, res) {
-    var body = _.pick(req.body, 'email', 'password');
-
-    db.user.create(body).then(function(data) {
-        res.json(data.toPublicJSON());
-    }, function(err) {
-        res.status(400).json(err);
-    });
-});
-
-// POST /users/login
-app.post('/users/login', function(req, res) {
-    var body = _.pick(req.body, 'email', 'password');
-
-    db.user.authenticate(body).then(function(data) {
-        var token = data.generateToken('authentication');
-        if (token) {
-            res.header('Auth', token).json(data.toPublicJSON());
-        } else {
-            res.status(401).send();
-        }
-    }, function(err) {
-        res.status(401).send(err);
-    });
-});
-
 // DELETE /todos/:id
 app.delete('/todos/:id', middleware.requireAuthentication, function(req, res) {
     var todoId = parseInt(req.params.id, 10);
@@ -156,6 +129,45 @@ app.put('/todos/:id', middleware.requireAuthentication, function(req, res) {
             res.status(404).send();
         }
     }, function(err) {
+        res.status(500).send();
+    });
+});
+
+// POST /users
+app.post('/users', function (req, res) {
+    var body = _.pick(req.body, 'email', 'password');
+
+    db.user.create(body).then(function(data) {
+        res.json(data.toPublicJSON());
+    }, function(err) {
+        res.status(400).json(err);
+    });
+});
+
+// POST /users/login
+app.post('/users/login', function(req, res) {
+    var body = _.pick(req.body, 'email', 'password');
+    var userInstance;
+
+    db.user.authenticate(body).then(function(data) {
+        var token = data.generateToken('authentication');
+        userInstance = data;
+
+        return db.token.create({
+            token: token
+        });
+    }).then(function(tokenInstance) {
+        res.header('Auth', tokenInstance.get('token')).json(userInstance.toPublicJSON());
+    }).catch(function(err) {
+        res.status(401).send(err);
+    });
+});
+
+// DELETE /users/login
+app.delete('/users/login', middleware.requireAuthentication, function(req, res) {
+    req.token.destroy().then(function() {
+        res.status(204).send();
+    }).catch(function() {
         res.status(500).send();
     });
 });
